@@ -1,5 +1,7 @@
 // The agent brain shared by chat and voice: one Agent, the prompt builder, and the voice tool bridge.
 import { Agent, run, RunContext, type AgentInputItem, type FunctionTool, type RunItem } from "@openai/agents";
+import { aisdk } from "@openai/agents-extensions/ai-sdk";
+import { gateway } from "ai";
 import { config } from "@/agent/config";
 import { CHIPS_RULE } from "./chips";
 import type { AgentCtx, Channel } from "./types";
@@ -21,13 +23,16 @@ export function buildInstructions(channel: Channel, visitorName: string | null, 
   ].filter(Boolean).join("\n\n");
 }
 
+// "provider/model" (e.g. anthropic/claude-sonnet-5-5) runs through Vercel AI Gateway (AI_GATEWAY_API_KEY); a bare name is an OpenAI model.
+export const chatModel = (id: string) => (id.includes("/") ? aisdk(gateway(id)) : id);
+
 let agent: Agent<AgentCtx> | undefined;
 const theAgent = () =>
   (agent ??= new Agent<AgentCtx>({
     name: config.name,
     instructions: ({ context }) => buildInstructions(context.channel, context.visitorName),
     tools: config.tools,
-    ...(config.models.chat ? { model: config.models.chat } : {}),
+    ...(config.models.chat ? { model: chatModel(config.models.chat) } : {}),
   }));
 
 export const runAgent = (ctx: AgentCtx, input: AgentInputItem[]) => run(theAgent(), input, { context: ctx });

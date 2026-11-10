@@ -3,12 +3,19 @@ import { describe, expect, it } from "vitest";
 import { config } from "@/agent/config";
 import { hasMarker, markerOf, splitChips } from "./chips";
 import { capText, replyText, spokenHistory, trimHistory } from "./history";
-import { buildInstructions, runTool, toolSchemas } from "./run";
+import { buildInstructions, chatModel, runTool, toolSchemas } from "./run";
 import { unforge } from "./safety";
 
 const out = (text: string, phase = "commentary") => ({ type: "message", role: "assistant", status: "completed", phase, content: [{ type: "output_text", text }] }) as unknown as AgentInputItem;
 const call = (name: string) => ({ type: "function_call", name, callId: "c1", arguments: "{}" }) as unknown as AgentInputItem;
 const result = () => ({ type: "function_call_result", name: "x", callId: "c1", output: { type: "text", text: "ok" } }) as unknown as AgentInputItem;
+
+describe("chatModel", () => {
+  it("keeps a bare OpenAI name and wraps provider/model for the AI Gateway", () => {
+    expect(chatModel("gpt-5.6-luna")).toBe("gpt-5.6-luna");
+    expect(typeof chatModel("anthropic/claude-sonnet-5-5")).toBe("object");
+  });
+});
 
 describe("history", () => {
   it("trimHistory starts at a user turn, so no tool result is left without its call", () => {

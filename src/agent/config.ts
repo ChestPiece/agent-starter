@@ -34,7 +34,8 @@ export const config = {
   },
 
   models: {
-    chat: process.env.OPENAI_MODEL || undefined, // undefined = the @openai/agents default
+    // OpenAI name (gpt-5.6-luna) or "provider/model" via AI Gateway (anthropic/claude-sonnet-5-5). Unset = the @openai/agents default.
+    chat: process.env.CHAT_MODEL || process.env.OPENAI_MODEL || undefined,
     voice: process.env.OPENAI_REALTIME_MODEL ?? "gpt-realtime-2.1-mini",
     voiceName: process.env.OPENAI_REALTIME_VOICE ?? "marin",
   },
